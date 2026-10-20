@@ -22,7 +22,8 @@ function assemble_fem(meshfile; order=1, degree=2, boundary_tag="boundary")
 end
 
 
-# Assemble the source and its k-derivative.
+# Assemble the source and the manually supplied k-derivative.
+# source_k must describe the intended source family; it is not projected.
 function assemble_source_loads(fem, source, source_k, k)
     dΩ = fem.dΩ
 

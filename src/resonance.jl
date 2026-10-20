@@ -59,7 +59,7 @@ function find_resonant_indices(eigenpairs, resonance_index; rtol=1e-3, atol=1e-1
 end
 
 
-# Check whether the source term is orthogonal to the resonant eigenspace.
+# Return whether the load is orthogonal to the resonant eigenspace.
 function check_source_orthogonality(source_loads, Φres; atol=1e-6, rtol=1e-4)
     b = source_loads.b
     coupling = Φres' * b
@@ -67,39 +67,7 @@ function check_source_orthogonality(source_loads, Φres; atol=1e-6, rtol=1e-4)
 
     scale = max(norm(Φres) * norm(b), 1.0)
 
-    is_orthogonal = coupling_norm <= atol + rtol * scale
-
-    if is_orthogonal
-        @info(
-            "The source is orthogonal to the resonant eigenspace. " *
-            "Use source_mode = :original."
-        )
-
-        return (;
-            is_orthogonal=true,
-            suggested_mode=:original,
-            available_modes=(:original,),
-            coupling,
-            coupling_norm,
-        )
-    else
-        @warn(
-            "The source is not orthogonal to the resonant eigenspace.\n" *
-            "Choose one of the following source extensions:\n" *
-            "  :frozen_correction  -- subtract the resonant component at k*, " *
-            "but keep the original k-derivative;\n" *
-            "  :projected_correction   -- project the entire source family and " *
-            "its k-derivative."
-        )
-
-        return (;
-            is_orthogonal=false,
-            suggested_mode=nothing,
-            available_modes=(:frozen_correction, :projected_correction),
-            coupling,
-            coupling_norm,
-        )
-    end
+    return coupling_norm <= atol + rtol * scale
 end
 
 
@@ -109,7 +77,5 @@ function project_load_to_range(fem, b, Φres)
 
     coefficients = G \ (Φres' * b)
 
-    projected = b - fem.M * Φres * coefficients
-
-    return (; projected, coefficients, gram=G)
+    return b - fem.M * Φres * coefficients
 end
